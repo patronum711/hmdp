@@ -18,14 +18,6 @@ import javax.servlet.http.HttpSession;
 
 import static com.baomidou.mybatisplus.core.toolkit.Wrappers.query;
 
-/**
- * <p>
- * 前端控制器
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
 @Slf4j
 @RestController
 @RequestMapping("/user")
@@ -38,16 +30,21 @@ public class UserController {
     private IUserInfoService userInfoService;
 
     /**
-     * 发送手机验证码
+     * 发送验证码
+     * @param phone
+     * @param session
+     * @return
      */
-    @PostMapping("code")
+    @PostMapping("/code")
     public Result sendCode(@RequestParam("phone") String phone, HttpSession session) {
         return userService.sendCode(phone, session);
     }
 
     /**
-     * 登录功能
-     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
+     * 登录（携带电话号和验证码密码等）
+     * @param loginForm
+     * @param session
+     * @return
      */
     @PostMapping("/login")
     public Result login(@RequestBody LoginFormDTO loginForm, HttpSession session){

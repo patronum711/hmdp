@@ -12,6 +12,8 @@ import com.hmdp.service.IVoucherService;
 import com.hmdp.utils.RedisIdWorker;
 import com.hmdp.utils.RedisLock;
 import com.hmdp.utils.UserHolder;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.aop.framework.AopContext;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.StringRedisTemplate;
@@ -36,10 +38,12 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
     private ISeckillVoucherService seckillVoucherService;
     @Resource
     private RedisIdWorker redisIdWorker;
-    @Autowired
+    @Resource
     private VoucherOrderServiceImpl selfProxy;
-    @Autowired
+    @Resource
     private StringRedisTemplate stringRedisTemplate;
+    @Resource
+    private RedissonClient redissonClient;
 
     /**
      * 秒杀优惠券
@@ -64,19 +68,16 @@ public class VoucherOrderServiceImpl extends ServiceImpl<VoucherOrderMapper, Vou
         }
 
         Long userId = UserHolder.getUser().getId();
-        // 创建锁
-        RedisLock redisLock = new RedisLock(stringRedisTemplate, "order:" + userId);
-        // 获得锁
-        boolean success = redisLock.lock(1200);
-        if (!success) {
-            // 这里不需要再去重试获得锁，只要锁有别的线程获取，说明就已有线程将执行够买，可以提前返回
-            return Result.fail("您已经购买过此优惠券");
+        RLock rLock = redissonClient.getLock("lock:order:" + userId);
+        boolean isLock = rLock.tryLock();
+        if (!isLock) {
+            return Result.fail("不允许重复下单");
         }
-        // 获得锁成功的逻辑
-        try{
+        try {
             return selfProxy.createVoucherOrder(voucherId);
-        }finally {
-            redisLock.unlock(); // 最后一定会执行finally中的逻辑
+        } finally {
+            //释放锁
+            rLock.unlock();
         }
     }
 

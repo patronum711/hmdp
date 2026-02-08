@@ -31,14 +31,7 @@ import java.util.concurrent.TimeUnit;
 import static com.hmdp.utils.RedisConstants.*;
 import static com.hmdp.utils.SystemConstants.USER_NICK_NAME_PREFIX;
 
-/**
- * <p>
- * 服务实现类
- * </p>
- *
- * @author 虎哥
- * @since 2021-12-22
- */
+
 @Slf4j
 @Service
 public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IUserService {
@@ -48,8 +41,9 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
 
     /**
      * 发送验证码
-     * @param phone 手机号
-     * @return 验证码发送结果
+     * @param phone
+     * @param session
+     * @return
      */
     @Override
     public Result sendCode(String phone, HttpSession session) {
@@ -68,9 +62,10 @@ public class UserServiceImpl extends ServiceImpl<UserMapper, User> implements IU
     }
 
     /**
-     * 登录功能
-     * @param loginForm 登录参数，包含手机号、验证码；或者手机号、密码
-     * @return 登录结果
+     * 登录
+     * @param loginForm
+     * @param session
+     * @return
      */
     @Override
     public Result login(LoginFormDTO loginForm, HttpSession session) {
